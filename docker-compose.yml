@@ -1,7 +1,27 @@
 version: '3.8'
+
 services:
-  web:
-    build: .
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5001
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "5001:5001"
     environment:
@@ -9,7 +29,7 @@ services:
     depends_on:
       - mongodb
     volumes:
-      - .:/app
+      - ./backend:/app
     networks:
       - app-network
 
