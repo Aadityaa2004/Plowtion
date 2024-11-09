@@ -9,30 +9,10 @@ load_dotenv()
 app = Flask(__name__)
 
 # MongoDB configuration
-try:
-    # Try to connect with URI first
-    MONGO_URI = os.environ.get('MONGO_URI')
-    if MONGO_URI:
-        client = MongoClient(MONGO_URI)
-    else:
-        # Fallback to individual parameters
-        MONGO_HOST = os.environ.get('MONGO_HOST', 'localhost')
-        MONGO_PORT = int(os.environ.get('MONGO_PORT', 27017))
-        client = MongoClient(MONGO_HOST, MONGO_PORT)
-
-    # Test the connection
-    client.admin.command('ping')
-    
-    MONGO_DBNAME = os.environ.get('MONGO_DBNAME', 'mydatabase')
-    MONGO_COLLECTION = os.environ.get('MONGO_COLLECTION', 'users')
-    
-    db = client[MONGO_DBNAME]
-    collection = db[MONGO_COLLECTION]
-    
-    print("Successfully connected to MongoDB!")
-
-except Exception as e:
-    print(f"Error connecting to MongoDB: {e}")
+MONGO_URI = os.getenv('MONGO_URI')
+client = MongoClient(MONGO_URI)
+db = client["mydatabase"]
+collection = db["users"]
 
 @app.route('/test', methods=['GET'])
 def test():
@@ -75,4 +55,4 @@ def delete_user(user_id):
         }), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
