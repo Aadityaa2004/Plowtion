@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: true,
+  // Suppress hydration warnings
+  suppressHydrationWarning: true
 };
 
 export default nextConfig;

@@ -13,6 +13,7 @@ services:
       - /app/.next
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:5001
+      - NODE_ENV=development
     networks:
       - app-network
     depends_on:
