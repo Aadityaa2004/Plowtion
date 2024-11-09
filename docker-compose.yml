@@ -12,7 +12,7 @@ services:
       - /app/node_modules
       - /app/.next
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:5001
+      - NEXT_PUBLIC_API_URL=http://backend:5001
       - NODE_ENV=development
     networks:
       - app-network
@@ -26,13 +26,16 @@ services:
     ports:
       - "5001:5001"
     environment:
-      - MONGO_URI=mongodb://mongodb:27017/
-    depends_on:
-      - mongodb
+      - MONGO_URI=mongodb+srv://vidhupv:hackUmass12@cluster0.xwni6.mongodb.net
+      - WEATHER_API_KEY=your_weather_api_key
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
     volumes:
       - ./backend:/app
     networks:
       - app-network
+    depends_on:
+      - mongodb
 
   mongodb:
     image: mongo:latest

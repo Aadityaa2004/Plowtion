@@ -1,4 +1,9 @@
 flask
 flask-cors
 pymongo
-python-dotenv 
+python-dotenv
+numpy
+scikit-learn
+joblib
+requests
+pandas
