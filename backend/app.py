@@ -79,6 +79,15 @@ def delete_user(user_id):
             "error": str(e),
             "status": "error"
         }), 500
+    
+
+
+
+
+    
+    
+    
+
 
 
 if __name__ == '__main__':
