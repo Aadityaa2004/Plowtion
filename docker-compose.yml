@@ -14,6 +14,11 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://backend:5001
       - NODE_ENV=development
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=tzBSB0OkkWLiyxieNVosAm3ed2J4FcUz5lo3w0KVUbE=
+      - GOOGLE_CLIENT_ID=1876125825-b91qlgruob7jeda1kocukgsnl1d4a74a.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=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
+      - MONGODB_URI=mongodb+srv://vidhupv:hackUmass12@cluster0.xwni6.mongodb.net
     networks:
       - app-network
     depends_on:
@@ -30,6 +35,7 @@ services:
       - WEATHER_API_KEY=your_weather_api_key
       - FLASK_APP=app.py
       - FLASK_ENV=development
+      - PERPLEXITY_API_KEY=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
     volumes:
       - ./backend:/app
       - ./backend/models:/app/models
