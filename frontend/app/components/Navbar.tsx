@@ -12,6 +12,7 @@ const NavBar = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const MenuItems = [
+    { title: "About Us", link: "/aboutus" },
     { title: "Home", link: "/" },
     { title: "Marketplace", link: "/marketplace" },
     { title: "Crops Guide", link: "/crops" },
