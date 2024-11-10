@@ -103,55 +103,6 @@ export default function Home() {
             </button>
           </form>
         </div>
-
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mt-12">
-          {['Smart Analysis', 'Location Based', 'Real-time Data'].map((feature) => (
-            <div 
-              key={feature}
-              className="bg-white/60 dark:bg-gray-800/60 p-6 rounded-lg text-center backdrop-blur-sm
-                hover:shadow-lg transition-shadow duration-200"
-            >
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                {feature}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                {feature === 'Smart Analysis' && 'AI-powered crop recommendations'}
-                {feature === 'Location Based' && 'Tailored to your specific region'}
-                {feature === 'Real-time Data' && 'Up-to-date farming insights'}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Step-by-Step Guide - Vertical Cards */}
-        <div className="space-y-6 mt-12">
-          {[
-            { 
-              title: 'Enter Crop and Location', 
-              description: 'Get a personalized crop schedule for your location based on weather and soil data' 
-            },
-            { 
-              title: 'Explore the Marketplace', 
-              description: 'Buy seeds,fertilizers,pesticides, and other farming supplies' 
-            }
-          ].map((step, index) => (
-            <div 
-              key={step.title}
-              className="bg-gradient-to-r from-green-100 to-green-200 dark:from-gray-800 dark:to-gray-700 p-8 rounded-lg shadow-lg text-center transform transition duration-200 hover:scale-105"
-            >
-              <div className="flex justify-center items-center w-12 h-12 rounded-full bg-green-600 text-white mb-4">
-                <span className="text-lg font-bold">{index + 1}</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                {step.title}
-              </h3>
-              <p className="text-gray-700 dark:text-gray-300">
-                {step.description}
-              </p>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

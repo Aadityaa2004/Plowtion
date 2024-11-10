@@ -27,7 +27,7 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div className="col-span-1 md:col-span-2">
                         <h2 className="text-2xl font-bold mb-4">FarmNest</h2>
-                        <p className="text-sm mb-4">Connect, grow, and succeed with Guide - your ultimate networking companion.</p>
+                        <p className="text-sm mb-4">Connect, grow, and succeed with FarmNest - your one stop farming guide.</p>
                         <div className="flex space-x-4">
                             {socialLinks.map((social, index) => (
                                 <Link key={index} href={social.link} className="text-gray-600 hover:text-gray-900">
