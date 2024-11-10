@@ -312,30 +312,42 @@ export default function CropGuide() {
           Showing {filteredCrops.length} of {crops.length} crops
         </div>
 
-        {/* Crops Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCrops.map((crop, index) => (
-            <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="h-48 overflow-hidden">
-                <img 
-                  src={crop.image} 
-                  alt={crop.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{crop.name}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{crop.description}</p>
-                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                  <p><span className="font-medium">Best Season:</span> {crop.season}</p>
-                  <p><span className="font-medium">Water Needs:</span> {crop.waterNeeds}</p>
-                  <p><span className="font-medium">Soil Type:</span> {crop.soilType}</p>
-                  <p><span className="font-medium">Growth Period:</span> {crop.growthPeriod}</p>
+        {/* Crops Grid or No Results Message */}
+        {filteredCrops.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCrops.map((crop, index) => (
+              <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="h-48 overflow-hidden">
+                  <img 
+                    src={crop.image} 
+                    alt={crop.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{crop.name}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{crop.description}</p>
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                    <p><span className="font-medium">Best Season:</span> {crop.season}</p>
+                    <p><span className="font-medium">Water Needs:</span> {crop.waterNeeds}</p>
+                    <p><span className="font-medium">Soil Type:</span> {crop.soilType}</p>
+                    <p><span className="font-medium">Growth Period:</span> {crop.growthPeriod}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="text-4xl mb-4">🌱</div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              No crops found
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Try adjusting your search or filters to find more crops
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
