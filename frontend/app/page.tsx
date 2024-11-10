@@ -1,150 +1,227 @@
 "use client"
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
-import { Cloud, Droplets, Thermometer } from 'lucide-react';
 
-interface SoilData {
+// Types
+type SoilData = {
   nitrogen: number;
   phosphorus: number;
   potassium: number;
   ph: number;
-}
+};
 
-interface PredictionResult {
+type PredictedConditions = {
+  temperature: number;
+  humidity: number;
+  rainfall: number;
+};
+
+type PredictionResult = {
   data: {
     username: string;
     userID: string;
     gmail: string;
-    soil_conditions: {
-      nitrogen: number;
-      phosphorus: number;
-      potassium: number;
-      ph: number;
-    };
-    predicted_conditions: {
-      temperature: number;
-      humidity: number;
-      rainfall: number;
-    };
+    soil_conditions: SoilData;
+    predicted_conditions: PredictedConditions;
     schedule: string | null;
   };
   message: string;
   status: string;
-}
+};
+
+// Constants
+const API_BASE_URL = 'http://localhost:5001';
+const MOCK_USER = {
+  username: "user1",
+  userID: "123",
+  gmail: "user@example.com"
+};
+
+const CROP_OPTIONS = {
+  Grains: ['rice', 'maize'],
+  Pulses: ['chickpea', 'kidneybeans', 'pigeonpeas', 'mothbeans', 'mungbean', 'blackgram', 'lentil'],
+  Fruits: ['pomegranate', 'banana', 'mango', 'grapes', 'watermelon', 'muskmelon', 'apple', 'orange', 'papaya', 'coconut'],
+  'Commercial Crops': ['cotton', 'jute', 'coffee']
+} as const;
+
+// Memoized SVG Components
+const ThermometerIcon = memo(() => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+    className="w-8 h-8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z" />
+    <path d="M12 9v3" />
+  </svg>
+));
+
+const HumidityIcon = memo(() => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+    className="w-8 h-8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+  </svg>
+));
+
+const RainfallIcon = memo(() => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+    className="w-8 h-8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+    <path d="M8 19v1M8 14v1M16 19v1M16 14v1M12 21v1M12 16v1" />
+  </svg>
+));
+
+// Memoized Card Components
+const WeatherCard = memo(({ icon: Icon, title, value, unit, bgColor }: {
+  icon: React.FC;
+  title: string;
+  value: number;
+  unit: string;
+  bgColor: string;
+}) => (
+  <div className={`${bgColor} rounded-lg p-6 flex flex-col items-center space-y-2`}>
+    <Icon />
+    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</h3>
+    <p className="text-3xl font-bold text-gray-800 dark:text-white">
+      {value.toFixed(1)}{unit}
+    </p>
+  </div>
+));
+
+const SoilConditionCard = memo(({ label, value }: { label: string; value: number }) => (
+  <div className="p-4 bg-amber-50 dark:bg-amber-900/50 rounded-lg">
+    <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+    <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+      {value.toFixed(1)}
+    </p>
+  </div>
+));
+
+const CropSelect = memo(({ value, onChange }: { 
+  value: string; 
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void 
+}) => (
+  <select
+    id="crop"
+    value={value}
+    onChange={onChange}
+    className="block w-full pl-3 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 rounded-lg 
+      focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500
+      dark:bg-gray-700 dark:text-white transition-colors duration-200
+      hover:border-green-400"
+    required
+  >
+    <option value="">Select a crop</option>
+    {Object.entries(CROP_OPTIONS).map(([group, crops]) => (
+      <optgroup key={group} label={group}>
+        {crops.map(crop => (
+          <option key={crop} value={crop}>
+            {crop.charAt(0).toUpperCase() + crop.slice(1)}
+          </option>
+        ))}
+      </optgroup>
+    ))}
+  </select>
+));
 
 export default function Home() {
   const [zipcode, setZipcode] = useState('');
   const [selectedCrop, setSelectedCrop] = useState('');
   const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null);
+  const [schedule, setSchedule] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [soilData, setSoilData] = useState<SoilData | null>(null);
 
-  const handleZipCodeSubmit = async () => {
+  const handleZipCodeSubmit = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5001/get-soil-by-zip/${zipcode}`);
+      const response = await fetch(`${API_BASE_URL}/get-soil-by-zip/${zipcode}`);
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch soil data');
-      }
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch soil data');
 
-      const soil = {
+      setSoilData({
         nitrogen: data.data.nitrogen,
         phosphorus: data.data.phosphorus,
         potassium: data.data.potassium,
         ph: data.data.ph
-      };
-      setSoilData(soil);
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch soil data');
+      throw err;
     }
-  };
+  }, [zipcode]);
 
-  const handlePredict = async () => {
+  const handlePredict = useCallback(async () => {
     if (!soilData) {
       setError('Please get soil data first');
       return;
     }
 
     try {
-      const predictionData = {
-        username: "user1",
-        userID: "123",
-        gmail: "user@example.com",
-        zipcode: zipcode,
-        crop_name: selectedCrop,
-        n: soilData.nitrogen,
-        p: soilData.phosphorus,
-        k: soilData.potassium,
-        ph: soilData.ph
-      };
-
-      const response = await fetch('http://localhost:5001/predict-conditions', {
+      const response = await fetch(`${API_BASE_URL}/predict-conditions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(predictionData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...MOCK_USER,
+          zipcode,
+          crop_name: selectedCrop,
+          n: soilData.nitrogen,
+          p: soilData.phosphorus,
+          k: soilData.potassium,
+          ph: soilData.ph
+        }),
       });
 
       const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Prediction failed');
-      }
-
+      if (!response.ok) throw new Error(result.error || 'Prediction failed');
       setPredictionResult(result);
+
+      // Use the prediction data to get the schedule from Perplexity API
+      const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer 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',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [{
+            role: "user",
+            content: `I live in zipcode ${zipcode}. I am waiting for a ${result.data.predicted_conditions.temperature}°C temperature, ${result.data.predicted_conditions.humidity}% relative humidity, and ${result.data.predicted_conditions.rainfall} mm rainfall. When can I expect conditions closest to this and create a step-by-step schedule for growing ${selectedCrop} to be followed from that point on.`
+          }],
+          max_tokens: 500,
+          temperature: 0.2
+        })
+      });
+
+      const perplexityResult = await perplexityResponse.json();
+      setSchedule(perplexityResult.choices[0].message.content);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Prediction failed');
+      throw err;
     }
-  };
+  }, [soilData, zipcode, selectedCrop]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
       await handleZipCodeSubmit();
-      if (soilData) {
-        await handlePredict();
-      }
+      await handlePredict();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
-  };
-
-  const WeatherCard = ({ icon: Icon, title, value, unit, bgColor }: {
-    icon: any;
-    title: string;
-    value: number;
-    unit: string;
-    bgColor: string;
-  }) => (
-    <div className={`${bgColor} rounded-lg p-6 flex flex-col items-center space-y-2`}>
-      <Icon className="w-8 h-8 text-gray-700 dark:text-gray-200" />
-      <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</h3>
-      <p className="text-3xl font-bold text-gray-800 dark:text-white">
-        {value.toFixed(1)}{unit}
-      </p>
-    </div>
-  );
+  }, [handleZipCodeSubmit, handlePredict]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white dark:from-gray-900 dark:to-gray-800 p-6">
       <div className="space-y-8 max-w-4xl mx-auto pt-12">
         <div className="flex justify-center">
-          <Image 
-            src="/leaf.png"
-            alt="Leaf"
-            width={64}
-            height={64}
-            className="animate-bounce"
-          />
+          <Image src="/leaf.png" alt="Leaf" width={64} height={64} className="animate-bounce" />
         </div>
 
         <div className="text-center space-y-6">
@@ -187,48 +264,7 @@ export default function Home() {
                 <label htmlFor="crop" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   Select Crop
                 </label>
-                <select
-                  id="crop"
-                  value={selectedCrop}
-                  onChange={(e) => setSelectedCrop(e.target.value)}
-                  className="block w-full pl-3 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 rounded-lg 
-                    focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500
-                    dark:bg-gray-700 dark:text-white transition-colors duration-200
-                    hover:border-green-400"
-                  required
-                >
-                  <option value="">Select a crop</option>
-                  <optgroup label="Grains">
-                    <option value="rice">Rice</option>
-                    <option value="maize">Maize</option>
-                  </optgroup>
-                  <optgroup label="Pulses">
-                    <option value="chickpea">Chickpea</option>
-                    <option value="kidneybeans">Kidney Beans</option>
-                    <option value="pigeonpeas">Pigeon Peas</option>
-                    <option value="mothbeans">Moth Beans</option>
-                    <option value="mungbean">Mung Bean</option>
-                    <option value="blackgram">Black Gram</option>
-                    <option value="lentil">Lentil</option>
-                  </optgroup>
-                  <optgroup label="Fruits">
-                    <option value="pomegranate">Pomegranate</option>
-                    <option value="banana">Banana</option>
-                    <option value="mango">Mango</option>
-                    <option value="grapes">Grapes</option>
-                    <option value="watermelon">Watermelon</option>
-                    <option value="muskmelon">Muskmelon</option>
-                    <option value="apple">Apple</option>
-                    <option value="orange">Orange</option>
-                    <option value="papaya">Papaya</option>
-                    <option value="coconut">Coconut</option>
-                  </optgroup>
-                  <optgroup label="Commercial Crops">
-                    <option value="cotton">Cotton</option>
-                    <option value="jute">Jute</option>
-                    <option value="coffee">Coffee</option>
-                  </optgroup>
-                </select>
+                <CropSelect value={selectedCrop} onChange={(e) => setSelectedCrop(e.target.value)} />
               </div>
             </div>
 
@@ -257,30 +293,10 @@ export default function Home() {
               Soil Conditions
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 bg-amber-50 dark:bg-amber-900/50 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Nitrogen</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {soilData.nitrogen.toFixed(1)}
-                </p>
-              </div>
-              <div className="p-4 bg-amber-50 dark:bg-amber-900/50 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Phosphorus</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {soilData.phosphorus.toFixed(1)}
-                </p>
-              </div>
-              <div className="p-4 bg-amber-50 dark:bg-amber-900/50 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Potassium</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {soilData.potassium.toFixed(1)}
-                </p>
-              </div>
-              <div className="p-4 bg-amber-50 dark:bg-amber-900/50 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">pH Level</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {soilData.ph.toFixed(1)}
-                </p>
-              </div>
+              <SoilConditionCard label="Nitrogen" value={soilData.nitrogen} />
+              <SoilConditionCard label="Phosphorus" value={soilData.phosphorus} />
+              <SoilConditionCard label="Potassium" value={soilData.potassium} />
+              <SoilConditionCard label="pH Level" value={soilData.ph} />
             </div>
           </div>
         )}
@@ -292,21 +308,21 @@ export default function Home() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <WeatherCard
-                icon={Thermometer}
+                icon={ThermometerIcon}
                 title="Temperature"
                 value={predictionResult.data.predicted_conditions.temperature}
                 unit="°C"
                 bgColor="bg-orange-50 dark:bg-orange-900/50"
               />
               <WeatherCard
-                icon={Droplets}
+                icon={HumidityIcon}
                 title="Humidity"
                 value={predictionResult.data.predicted_conditions.humidity}
                 unit="%"
                 bgColor="bg-blue-50 dark:bg-blue-900/50"
               />
               <WeatherCard
-                icon={Cloud}
+                icon={RainfallIcon}
                 title="Rainfall"
                 value={predictionResult.data.predicted_conditions.rainfall}
                 unit="mm"
@@ -314,14 +330,14 @@ export default function Home() {
               />
             </div>
 
-            {predictionResult.data.schedule && (
+            {schedule && (
               <div className="mt-6">
                 <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-3">
                   Growing Schedule
                 </h3>
                 <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                   <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                    {predictionResult.data.schedule}
+                    {schedule}
                   </p>
                 </div>
               </div>

@@ -12,10 +12,10 @@ const NavBar = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const MenuItems = [
-    { title: "About Us", link: "/aboutus" },
     { title: "Home", link: "/" },
-    { title: "Marketplace", link: "/marketplace" },
+    { title: "About Us", link: "/aboutus" },
     { title: "Crops Guide", link: "/crops" },
+    { title: "Marketplace", link: "/marketplace" }
   ];
 
   // Toggle menu visibility

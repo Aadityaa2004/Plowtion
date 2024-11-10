@@ -573,5 +573,45 @@ def test_perplexity():
             "status": "error"
         }), 500
 
+def get_farming_schedule(zipcode, temperature, humidity, rainfall, crop_name):
+    try:
+        PERPLEXITY_API_KEY = os.getenv('PERPLEXITY_API_KEY')
+        if not PERPLEXITY_API_KEY:
+            return None
+
+        prompt = f"I live in zipcode {zipcode}. I am waiting for a {temperature}°C temperature, {humidity}% relative humidity, and {rainfall} mm rainfall. When can I expect conditions closest to this and create a step-by-step schedule for growing {crop_name} to be followed from that point on."
+
+        headers = {
+            "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": "llama-3.1-sonar-small-128k-online",
+            "messages": [
+                {"role": "system", "content": "You are a farming expert. Provide concise and practical advice."},
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": 500,
+            "temperature": 0.2
+        }
+
+        response = requests.post(
+            "https://api.perplexity.ai/chat/completions",
+            headers=headers,
+            json=payload
+        )
+
+        if response.status_code == 200:
+            content = response.json()['choices'][0]['message']['content']
+            return content
+        else:
+            print(f"Perplexity API error: {response.text}")
+            return None
+
+    except Exception as e:
+        print(f"Error getting farming schedule: {str(e)}")
+        return None
+    
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
