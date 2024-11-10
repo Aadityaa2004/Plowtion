@@ -324,10 +324,17 @@ def get_farming_schedule(zipcode, temperature, humidity, rainfall, crop):
 
         # Create the prompt
         prompt = (
-            f"I live in zipcode {zipcode}. I am waiting for a {temperature}°C temperature, "
-            f"{humidity}% relative humidity, and {rainfall} mm rainfall. When can I expect conditions "
-            f"closest to this and create a step-by-step schedule for growing {crop} to be followed from that point on."
+            f"I live in zipcode {zipcode} and am waiting for conditions of approximately {temperature}°C temperature, "
+            f"{humidity}% relative humidity, and {rainfall} mm rainfall to start planting. Could you provide:\n\n"
+            f"1. The estimated date when these conditions are likely to occur.\n"
+            f"2. A step-by-step growing schedule, starting from that date, which includes:\n"
+            f"-Preparation steps before planting (soil preparation, recommended nutrients).\n"
+            f"-Planting instructions (timing, spacing, depth, and initial watering).\n"
+            f"-Growth phase guidelines (watering frequency, pest and disease management, and any nutrient needs).\n"
+            f"-Harvesting suggestions (ideal time for harvest, techniques, and storage tips for optimal yield).\n"
+            f"Thank you!"
         )
+        
 
         payload = {
             "model": "llama-3.1-sonar-small-128k-online",
