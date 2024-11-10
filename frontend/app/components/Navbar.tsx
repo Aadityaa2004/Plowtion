@@ -14,6 +14,7 @@ const NavBar = () => {
   const MenuItems = [
     { title: "Home", link: "/" },
     { title: "Marketplace", link: "/marketplace" },
+    { title: "Crops Guide", link: "/crops" },
   ];
 
   // Toggle menu visibility
@@ -46,7 +47,16 @@ const NavBar = () => {
       <div className="flex items-center justify-between mx-auto px-4 md:px-8 py-1">
         {/* Logo */}
         <Link href="/" scroll={true}>
-          <div className="text-xl font-bold text-black">FarmNest</div>
+          <div className="flex items-center space-x-2">
+            <Image 
+              src="/leaf.png" 
+              alt="FarmNest Logo" 
+              width={30} 
+              height={30} 
+              className="object-contain"
+            />
+            <div className="text-xl font-bold text-black">FarmNest</div>
+          </div>
         </Link>
 
         {/* Desktop Menu and Auth Buttons */}
@@ -64,10 +74,10 @@ const NavBar = () => {
           ))}
           <Link href="/profile">
             <Image
-              src="/profile-icon.png"
+              src="/profile-photo.png"
               alt="Profile"
-              width={24}
-              height={24}
+              width={20}
+              height={20}
               className={`cursor-pointer hover:opacity-80 ${
                 path === '/profile' ? 'opacity-100' : 'opacity-70'
               }`}
