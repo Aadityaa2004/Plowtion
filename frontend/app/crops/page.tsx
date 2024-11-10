@@ -46,7 +46,7 @@ export default function CropGuide() {
     },
     {
       name: "Pigeon Peas",
-      season: "Kharif",
+      season: "Summer",
       waterNeeds: "Low to Moderate",
       soilType: "Well-drained",
       growthPeriod: "120-180 days",
@@ -55,7 +55,7 @@ export default function CropGuide() {
     },
     {
       name: "Moth Beans",
-      season: "Kharif",
+      season: "Summer",
       waterNeeds: "Low",
       soilType: "Sandy loam",
       growthPeriod: "75-90 days",
@@ -64,7 +64,7 @@ export default function CropGuide() {
     },
     {
       name: "Mung Bean",
-      season: "Kharif/Summer",
+      season: "Summer",
       waterNeeds: "Moderate",
       soilType: "Well-drained loamy",
       growthPeriod: "60-75 days",
@@ -73,7 +73,7 @@ export default function CropGuide() {
     },
     {
       name: "Black Gram",
-      season: "Kharif",
+      season: "Summer",
       waterNeeds: "Moderate",
       soilType: "Well-drained loamy",
       growthPeriod: "90-120 days",
@@ -82,7 +82,7 @@ export default function CropGuide() {
     },
     {
       name: "Lentil",
-      season: "Rabi",
+      season: "Winter",
       waterNeeds: "Low to Moderate",
       soilType: "Well-drained loamy",
       growthPeriod: "120-150 days",
@@ -183,7 +183,7 @@ export default function CropGuide() {
     // Commercial Crops
     {
       name: "Cotton",
-      season: "Kharif",
+      season: "Summer",
       waterNeeds: "Moderate",
       soilType: "Black cotton soil/loamy",
       growthPeriod: "150-180 days",
@@ -192,7 +192,7 @@ export default function CropGuide() {
     },
     {
       name: "Jute",
-      season: "Kharif",
+      season: "Summer",
       waterNeeds: "High",
       soilType: "Well-drained loamy",
       growthPeriod: "120-150 days",
