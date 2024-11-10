@@ -3,10 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-// import { Moon, Sun } from "lucide-react";
-// import { Button } from "@/components/ui/button";
+import { useSession, signOut, signIn } from "next-auth/react";
 
 const NavBar = () => {
+  const { data: session } = useSession();
   const path = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -73,27 +73,33 @@ const NavBar = () => {
               </button>
             </Link>
           ))}
-          <Link href="/profile">
-            <Image
-              src="/profile-photo.png"
-              alt="Profile"
-              width={20}
-              height={20}
-              className={`cursor-pointer hover:opacity-80 ${
-                path === '/profile' ? 'opacity-100' : 'opacity-70'
-              }`}
-            />
-          </Link>
-          {/* <Link href="/login">
-            <button className="text-sm text-black hover:text-gray-600">
+          
+          {session?.user ? (
+            <div className="flex items-center space-x-4">
+              <Link href="/profile">
+                <Image
+                  src={session.user.image || "/profile-photo.png"}
+                  alt="Profile"
+                  width={32}
+                  height={32}
+                  className="rounded-full cursor-pointer hover:opacity-80"
+                />
+              </Link>
+              <button
+                onClick={() => signOut()}
+                className="text-sm bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => signIn("google")}
+              className="text-sm bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+            >
               Sign In
             </button>
-          </Link>
-          <Link href="/signup">
-            <button className="text-sm bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800">
-              Sign Up
-            </button>
-          </Link> */}
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -131,22 +137,31 @@ const NavBar = () => {
             </Link>
           ))}
           <div className="pt-4 border-t border-gray-200">
-            <Link href="/login">
-              <button
-                onClick={toggleMenu}
-                className="w-full text-sm text-black hover:text-gray-600 py-2 text-center"
-              >
-                Sign In
-              </button>
-            </Link>
-            <Link href="/signup">
-              <button
-                onClick={toggleMenu}
-                className="w-full text-sm bg-black text-white py-2 rounded-md hover:bg-gray-800 mt-2 text-center"
-              >
-                Sign Up
-              </button>
-            </Link>
+            {session?.user ? (
+              <>
+                <Link href="/profile">
+                  <button
+                    onClick={toggleMenu}
+                    className="w-full text-sm text-black hover:text-gray-600 py-2 text-center"
+                  >
+                    Profile
+                  </button>
+                </Link>
+                <button
+                  onClick={() => {
+                    signOut();
+                    toggleMenu();
+                  }}
+                  className="w-full text-sm bg-red-600 text-white py-2 rounded-md hover:bg-red-700 mt-2 text-center"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => signIn("google")}>Sign In With Google</button>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -1,9 +1,12 @@
+'use client';
+import { useSession } from 'next-auth/react';
+import Image from 'next/image';
+import Link from 'next/link';
+
 const FARMER_DATA = {
-  name: "John Farmer",
   since: "2024",
   location: "Iowa, USA",
   totalArea: "50 acres",
-  profileImage: "👨‍🌾",
   currentCrop: "Corn",
   schedule: [
     "Apply fertilizer to corn fields - May 20",
@@ -14,6 +17,8 @@ const FARMER_DATA = {
 };
 
 export default function Profile() {
+  const { data: session } = useSession();
+
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">Farmer Profile</h1>
@@ -21,11 +26,25 @@ export default function Profile() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
         {/* Farmer Info */}
         <div className="flex items-center space-x-4">
-          <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center">
-            <span className="text-2xl text-green-600">{FARMER_DATA.profileImage}</span>
+          <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center overflow-hidden">
+            {session?.user?.image ? (
+              <Link href="/profile">
+                <Image
+                  src={session.user.image || "/profile-photo.png"}
+                  alt="Profile"
+                  width={80}
+                  height={80}
+                  className="rounded-full cursor-pointer hover:opacity-80"
+                />
+              </Link>
+            ) : (
+              <span className="text-2xl text-green-600">👨‍🌾</span>
+            )}
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{FARMER_DATA.name}</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              {session?.user?.name || FARMER_DATA.name}
+            </h2>
             <p className="text-gray-500 dark:text-gray-400">Member since {FARMER_DATA.since}</p>
             <p className="text-gray-500 dark:text-gray-400">{FARMER_DATA.location}</p>
             <p className="text-gray-500 dark:text-gray-400">Total Area: {FARMER_DATA.totalArea}</p>

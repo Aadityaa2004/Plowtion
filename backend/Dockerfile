@@ -14,13 +14,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY . .
 
-# Create model directory
-RUN mkdir -p ./model
-
 EXPOSE 5001
 
 # Use environment variable for Flask
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=development
 
-CMD ["python", "app.py"]
+# Start Flask without model verification
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5001"]
