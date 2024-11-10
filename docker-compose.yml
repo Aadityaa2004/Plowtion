@@ -36,6 +36,10 @@ services:
       - FLASK_APP=app.py
       - FLASK_ENV=development
       - PERPLEXITY_API_KEY=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
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - SAGEMAKER_ENDPOINT=farmModelEndpoint
     volumes:
       - ./backend:/app
       - ./backend/models:/app/models
