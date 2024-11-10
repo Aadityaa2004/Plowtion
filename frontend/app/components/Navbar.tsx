@@ -14,6 +14,7 @@ const NavBar = () => {
   const MenuItems = [
     { title: "Home", link: "/" },
     { title: "Marketplace", link: "/marketplace" },
+    { title: "Crops Guide", link: "/crops" },
   ];
 
   // Toggle menu visibility

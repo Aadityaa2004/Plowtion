@@ -3,25 +3,24 @@ import Link from "next/link";
 export default function Footer() {
     const navItems = [
         { title: 'Home', link: '/' },
-        { title: 'Network', link: '/network' },
-        { title: 'Jobs', link: '/jobs' },
-        { title: 'Messages', link: '/messages' },
-        { title: 'Notifications', link: '/notifications' },
+        { title: 'Marketplace', link: '/marketplace' },
+        { title: 'Crop Guide', link: '/crops' },
+        { title: 'Weather', link: '/weather' },
     ];
 
     const resources = [
-        { title: 'Help Center', link: '/help' },
-        { title: 'About Guide', link: '/about' },
-        { title: 'Careers', link: '/careers' },
+        { title: 'Farming Guide', link: '/guides' },
+        { title: 'Soil Analysis', link: '/soil-analysis' },
+        { title: 'Crop Calendar', link: '/calendar' },
         { title: 'Privacy Policy', link: '/privacy' },
         { title: 'Terms of Service', link: '/terms' },
     ];
 
     const socialLinks = [
-        { title: 'LinkedIn', link: 'https://www.linkedin.com' },
-        { title: 'Twitter', link: 'https://www.twitter.com' },
-        { title: 'Facebook', link: 'https://www.facebook.com' },
-        { title: 'Instagram', link: 'https://www.instagram.com' },
+        { title: 'LinkedIn', link: 'https://www.linkedin.com/company/farmnest' },
+        { title: 'Twitter', link: 'https://twitter.com/farmnest' },
+        { title: 'Facebook', link: 'https://facebook.com/farmnestofficial' },
+        { title: 'Instagram', link: 'https://instagram.com/farmnest.official' },
     ];
 
     return (
