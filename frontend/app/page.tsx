@@ -122,6 +122,21 @@ const CropSelect = memo(({ value, onChange }: {
   </select>
 ));
 
+// Function to save schedule to the database
+async function saveScheduleToDatabase(userID: string, schedule: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/save-schedule`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userID, schedule }),
+    });
+
+    if (!response.ok) throw new Error('Failed to save schedule');
+  } catch (err) {
+    console.error('Error saving schedule:', err);
+  }
+}
+
 export default function Home() {
   const [zipcode, setZipcode] = useState('');
   const [selectedCrop, setSelectedCrop] = useState('');
@@ -194,7 +209,11 @@ export default function Home() {
       });
 
       const perplexityResult = await perplexityResponse.json();
-      setSchedule(perplexityResult.choices[0].message.content);
+      const scheduleContent = perplexityResult.choices[0].message.content;
+      setSchedule(scheduleContent);
+
+      // Save the schedule to the database
+      await saveScheduleToDatabase(MOCK_USER.userID, scheduleContent);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Prediction failed');
