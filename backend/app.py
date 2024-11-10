@@ -9,6 +9,7 @@ from datetime import datetime
 import requests
 import pandas as pd
 from bson.objectid import ObjectId
+from urllib.parse import urlparse
 
 # Load environment variables
 load_dotenv()
@@ -23,18 +24,86 @@ db = client["farmnest"]
 users_collection = db["users"]
 predictions_collection = db["predictions"]
 
-# Load model
 try:
-    model_data = joblib.load('./model/crop_model.joblib')
-    feature_scaler = model_data['feature_scaler']
-    target_scaler = model_data['target_scaler']
-    model = model_data['model']
+    zip_data_path = os.path.join(os.path.dirname(__file__), 'dataset', 'zip-code.csv')
+    zip_df = pd.read_csv(zip_data_path)
 except Exception as e:
-    print(f"Error loading model: {str(e)}")
-    model_data = None
-    feature_scaler = None
-    target_scaler = None
-    model = None
+    print(f"Error loading ZIP code data: {str(e)}")
+    zip_df = None
+
+MODEL_URL = "https://drive.google.com/file/d/16sNqWf_wZHrtrfFnMaIHSROOUOvUqOPj/view"
+MODEL_DIR = os.path.join(os.path.dirname(__file__), 'model')
+MODEL_PATH = os.path.join(MODEL_DIR, 'model.pkl')
+
+def ensure_model_directory():
+    """Ensure the model directory exists with proper permissions"""
+    try:
+        if not os.path.exists(MODEL_DIR):
+            os.makedirs(MODEL_DIR, mode=0o755, exist_ok=True)
+        return True
+    except Exception as e:
+        print(f"Error creating model directory: {str(e)}")
+        return False
+
+def download_from_drive(url):
+    """Download the model file from Google Drive"""
+    try:
+        # Ensure model directory exists
+        if not ensure_model_directory():
+            return False
+
+        # Extract file ID from Drive URL
+        parsed_url = urlparse(url)
+        file_id = parsed_url.path.split('/')[-2]
+        
+        # Use the direct download URL
+        download_url = f"https://drive.google.com/uc?id={file_id}&export=download"
+        
+        print("Downloading model file...")
+        response = requests.get(download_url)
+        
+        if response.status_code == 200:
+            with open(MODEL_PATH, 'wb') as f:
+                f.write(response.content)
+            # Set proper file permissions
+            os.chmod(MODEL_PATH, 0o644)
+            print("Model downloaded successfully!")
+            return True
+        else:
+            print(f"Failed to download model: Status code {response.status_code}")
+            return False
+    except Exception as e:
+        print(f"Error downloading model: {str(e)}")
+        return False
+
+# Update the model loading logic
+loaded_model = None
+
+# Ensure model directory exists
+ensure_model_directory()
+
+# Try to load existing model first
+if os.path.exists(MODEL_PATH):
+    try:
+        loaded_model = joblib.load(MODEL_PATH)
+        print("Model loaded from existing file!")
+    except Exception as e:
+        print(f"Error loading existing model: {str(e)}")
+        # If loading fails, try to re-download
+        if download_from_drive(MODEL_URL):
+            try:
+                loaded_model = joblib.load(MODEL_PATH)
+                print("Model re-downloaded and loaded successfully!")
+            except Exception as e:
+                print(f"Error loading re-downloaded model: {str(e)}")
+else:
+    # Download and load model if it doesn't exist
+    if download_from_drive(MODEL_URL):
+        try:
+            loaded_model = joblib.load(MODEL_PATH)
+            print("Model downloaded and loaded successfully!")
+        except Exception as e:
+            print(f"Error loading downloaded model: {str(e)}")
 
 # Define crop conditions (you can expand this)
 CROP_CONDITIONS = {
@@ -115,74 +184,21 @@ def delete_user(user_id):
             "status": "error"
         }), 500
 
-@app.route('/predict-crop', methods=['POST'])
-def predict_crop():
-    """Predict crop conditions and generate schedule"""
+@app.route('/get-first-ten', methods=['GET'])
+def get_first_ten():
+    """Return the first 10 rows of the ZIP code soil data"""
     try:
-        if not model_data:
+        if zip_df is None:
             return jsonify({
-                "error": "Model not loaded",
+                "error": "ZIP code data not loaded",
                 "status": "error"
             }), 500
             
-        data = request.json
-        crop = data.get('crop', '').lower()
-        zipcode = data.get('zipcode')
-        soil_data = data.get('soil_data', {
-            'N': 90,
-            'P': 40,
-            'K': 35,
-            'ph': 6.5
-        })
-        
-        # Get weather data
-        weather_data = get_weather_data(zipcode)
-        
-        # Prepare input for model
-        input_features = np.array([[
-            soil_data['N'],
-            soil_data['P'],
-            soil_data['K'],
-            soil_data['ph'],
-            weather_data['temperature'],
-            weather_data['humidity'],
-            weather_data['rainfall']
-        ]])
-        
-        # Scale features
-        input_scaled = feature_scaler.transform(input_features)
-        
-        # Make prediction
-        prediction = model_data.predict(input_scaled)
-        
-        # Inverse transform prediction if needed
-        if target_scaler:
-            prediction = target_scaler.inverse_transform(prediction)
-        
-        # Generate schedule
-        schedule = generate_schedule(crop, weather_data)
-        
-        # Store prediction in MongoDB
-        prediction_doc = {
-            "crop": crop,
-            "zipcode": zipcode,
-            "soil_data": soil_data,
-            "weather_data": weather_data,
-            "prediction": prediction.tolist()[0],
-            "schedule": schedule,
-            "timestamp": datetime.utcnow()
-        }
-        predictions_collection.insert_one(prediction_doc)
-        
+        first_ten = zip_df.head(10).to_dict('records')
         return jsonify({
-            "status": "success",
-            "crop": crop,
-            "location": zipcode,
-            "weather": weather_data,
-            "soil_data": soil_data,
-            "prediction": prediction.tolist()[0],
-            "schedule": schedule,
-            "timestamp": datetime.utcnow().isoformat()
+            "data": first_ten,
+            "count": len(first_ten),
+            "status": "success"
         }), 200
         
     except Exception as e:
@@ -190,136 +206,164 @@ def predict_crop():
             "error": str(e),
             "status": "error"
         }), 500
-
-
-def get_weather_data(zipcode):
-    """Get weather data from external API or use dummy data"""
-    WEATHER_API_KEY = os.getenv('WEATHER_API_KEY')
     
+@app.route('/get-soil-by-zip/<zipcode>', methods=['GET'])
+def get_soil_by_zip(zipcode):
+    """Return soil data for a specific ZIP code"""
     try:
-        if WEATHER_API_KEY:
-            weather_url = f"https://api.weatherapi.com/v1/current.json?key={WEATHER_API_KEY}&q={zipcode}"
-            response = requests.get(weather_url)
-            data = response.json()
-            
-            return {
-                "temperature": data['current']['temp_c'],
-                "humidity": data['current']['humidity'],
-                "rainfall": data['current']['precip_mm']
-            }
-        else:
-            # Return dummy data if no API key
-            return {
-                "temperature": 25,
-                "humidity": 65,
-                "rainfall": 150
-            }
-    except Exception as e:
-        print(f"Weather API error: {str(e)}")
-        return {
-            "temperature": 25,
-            "humidity": 65,
-            "rainfall": 150
-        }
-
-def generate_schedule(crop, conditions):
-    """Generate farming schedule based on conditions"""
-    current_date = datetime.now()
-    crop_info = CROP_CONDITIONS.get(crop.lower(), CROP_CONDITIONS['rice'])
-    
-    temp_suitable = crop_info['temp_range'][0] <= conditions['temperature'] <= crop_info['temp_range'][1]
-    humidity_suitable = crop_info['humidity_range'][0] <= conditions['humidity'] <= crop_info['humidity_range'][1]
-    rainfall_suitable = crop_info['rainfall_range'][0] <= conditions['rainfall'] <= crop_info['rainfall_range'][1]
-    
-    schedule = []
-    
-    if all([temp_suitable, humidity_suitable, rainfall_suitable]):
-        schedule = [
-            {
-                "phase": "Soil Preparation",
-                "start_date": current_date.strftime('%Y-%m-%d'),
-                "duration": "7 days",
-                "tasks": [
-                    "Soil testing",
-                    "Field preparation",
-                    "Fertilizer application"
-                ]
-            },
-            {
-                "phase": "Sowing",
-                "start_date": (current_date + pd.Timedelta(days=7)).strftime('%Y-%m-%d'),
-                "duration": "3-5 days",
-                "tasks": [
-                    "Seed preparation",
-                    "Sowing process",
-                    "Initial irrigation"
-                ]
-            },
-            {
-                "phase": "Growth Monitoring",
-                "start_date": (current_date + pd.Timedelta(days=12)).strftime('%Y-%m-%d'),
-                "duration": "Ongoing",
-                "tasks": [
-                    "Regular irrigation",
-                    "Pest monitoring",
-                    "Fertilizer management"
-                ]
-            }
-        ]
-    else:
-        schedule = [{
-            "phase": "Warning",
-            "message": "Current conditions not optimal for sowing",
-            "recommended_ranges": {
-                "temperature": f"{crop_info['temp_range'][0]}-{crop_info['temp_range'][1]}°C",
-                "humidity": f"{crop_info['humidity_range'][0]}-{crop_info['humidity_range'][1]}%",
-                "rainfall": f"{crop_info['rainfall_range'][0]}-{crop_info['rainfall_range'][1]}mm"
-            }
-        }]
-    
-    return schedule
-
-@app.route('/update-soil-data', methods=['POST'])
-def update_soil_data():
-    """Update soil data for a user"""
-    try:
-        data = request.json
-        user_id = data.get('user_id')
-        soil_data = {
-            'nitrogen': data.get('nitrogen'),
-            'phosphorus': data.get('phosphorus'),
-            'potassium': data.get('potassium'),
-            'ph': data.get('ph'),
-            'updated_at': datetime.utcnow()
-        }
-        
-        result = users_collection.update_one(
-            {"_id": ObjectId(user_id)},
-            {"$set": {"soil_data": soil_data}}
-        )
-        
-        if result.modified_count == 1:
+        if zip_df is None:
             return jsonify({
-                "message": "Soil data updated successfully",
-                "status": "success"
-            }), 200
-        else:
-            return jsonify({
-                "message": "User not found",
+                "error": "ZIP code data not loaded",
                 "status": "error"
+            }), 500
+            
+        # Convert zipcode to integer for matching
+        zip_int = int(zipcode)
+        
+        # Find the matching row
+        soil_data = zip_df[zip_df['ZipCode'] == zip_int]
+        
+        if soil_data.empty:
+            return jsonify({
+                "message": f"No data found for ZIP code {zipcode}",
+                "status": "not_found"
             }), 404
             
+        # Extract the soil data
+        result = {
+            "zipcode": int(soil_data['ZipCode'].iloc[0]),
+            "nitrogen": float(soil_data['Nitrogen (N)'].iloc[0]),
+            "phosphorus": float(soil_data['Phosphorus (P)'].iloc[0]),
+            "potassium": float(soil_data['Potassium (K)'].iloc[0]),
+            "ph": float(soil_data['pH Level'].iloc[0])
+        }
+        
+        return jsonify({
+            "data": result,
+            "status": "success"
+        }), 200
+        
+    except ValueError:
+        return jsonify({
+            "error": "Invalid ZIP code format",
+            "status": "error"
+        }), 400
     except Exception as e:
         return jsonify({
             "error": str(e),
             "status": "error"
         }), 500
 
+@app.route('/predict-conditions', methods=['POST'])
+def predict_conditions():
+    """
+    Predict temperature, humidity, and rainfall based on soil conditions
+    Expected input format:
+    {
+        "N": float,
+        "P": float,
+        "K": float,
+        "ph": float,
+        "label_coffee": int (0 or 1)
+        // other crop labels are optional and will default to 0
+    }
+    """
+    try:
+        if loaded_model is None:
+            return jsonify({
+                "error": "Model not loaded",
+                "status": "error"
+            }), 500
+
+        data = request.json
+        
+        # Define all columns in the exact order used during training
+        model_columns = [
+            "N", "P", "K", "ph",
+            "label_apple", "label_banana", "label_blackgram", "label_chickpea", 
+            "label_coconut", "label_coffee", "label_cotton", "label_grapes", 
+            "label_jute", "label_kidneybeans", "label_lentil", "label_maize", 
+            "label_mango", "label_mothbeans", "label_mungbean", "label_muskmelon", 
+            "label_orange", "label_papaya", "label_pigeonpeas", "label_pomegranate", 
+            "label_rice", "label_watermelon"
+        ]
+        
+        # Required core columns
+        required_columns = ["N", "P", "K", "ph"]
+        
+        # Create initial dictionary with required fields
+        input_dict = {}
+        
+        # Process required columns
+        for col in required_columns:
+            value = data.get(col)
+            if value is None:
+                raise ValueError(f"Missing required field: {col}")
+            input_dict[col] = float(value)
+        
+        # Process all label columns - default to 0 if not provided
+        for col in model_columns:
+            if col not in required_columns:  # Skip the columns we already processed
+                input_dict[col] = int(data.get(col, 0))
+        
+        # Create DataFrame with single row and correct column order
+        input_data = pd.DataFrame([input_dict])[model_columns]
+        
+        # Make prediction
+        prediction = loaded_model.predict(input_data)
+        
+        # Extract predictions (assuming model returns [temperature, humidity, rainfall])
+        temperature, humidity, rainfall = prediction[0]
+        
+        # Create response
+        result = {
+            "temperature": float(temperature),
+            "humidity": float(humidity),
+            "rainfall": float(rainfall),
+            "input_conditions": data
+        }
+        
+        # Store prediction in database
+        prediction_record = {
+            "timestamp": datetime.utcnow(),
+            "input_conditions": data,
+            "predictions": {
+                "temperature": float(temperature),
+                "humidity": float(humidity),
+                "rainfall": float(rainfall)
+            }
+        }
+        predictions_collection.insert_one(prediction_record)
+        
+        return jsonify({
+            "data": result,
+            "status": "success"
+        }), 200
+        
+    except ValueError as ve:
+        return jsonify({
+            "error": "Invalid input format. Please check your input values.",
+            "details": str(ve),
+            "status": "error"
+        }), 400
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "status": "error"
+        }), 500
+    
 @app.route('/get-predictions', methods=['GET'])
 def get_predictions():
-    """Get historical predictions"""
+    """Get all stored predictions"""
     try:
-        predictions = list(predictions_collection.find({}, {'_id': 0}).sort('timestamp', -1).limit(10))
+        # Fetch all predictions from collection
+        predictions = list(predictions_collection.find().sort("timestamp", -1))
+        
+        # Convert ObjectId and datetime to string for JSON serialization
+        for pred in predictions:
+            pred['_id'] = str(pred['_id'])
+            pred['timestamp'] = pred['timestamp'].isoformat()
+            
         return jsonify({
             "predictions": predictions,
             "count": len(predictions),
@@ -330,6 +374,33 @@ def get_predictions():
             "error": str(e),
             "status": "error"
         }), 500
+    
+@app.route('/get-prediction/<prediction_id>', methods=['GET'])
+def get_prediction(prediction_id):
+    """Get a specific prediction by ID"""
+    try:
+        prediction = predictions_collection.find_one({"_id": ObjectId(prediction_id)})
+        
+        if not prediction:
+            return jsonify({
+                "message": f"Prediction {prediction_id} not found",
+                "status": "not_found"
+            }), 404
+            
+        # Convert ObjectId and datetime to string for JSON serialization
+        prediction['_id'] = str(prediction['_id'])
+        prediction['timestamp'] = prediction['timestamp'].isoformat()
+        
+        return jsonify({
+            "prediction": prediction,
+            "status": "success"
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "status": "error"
+        }), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
