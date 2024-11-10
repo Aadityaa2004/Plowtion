@@ -12,7 +12,8 @@ from bson.objectid import ObjectId
 from urllib.parse import urlparse
 import json
 import asyncio
-import openai  # Import openai for Perplexity API interaction
+import openai
+import boto3 # Import openai for Perplexity API interaction
 
 # Load environment variables
 load_dotenv()
@@ -27,12 +28,48 @@ db = client["farmnest"]
 users_collection = db["users"]
 user_conditions_collection = db["user_conditions"]  # Collection for user data
 
+# Initialize SageMaker client
+try:
+    sagemaker_runtime = boto3.client(
+        'sagemaker-runtime',
+        region_name=os.getenv('AWS_DEFAULT_REGION')
+    )
+except Exception as e:
+    print(f"Error initializing SageMaker client: {str(e)}")
+    sagemaker_runtime = None
+
+
 try:
     zip_data_path = os.path.join(os.path.dirname(__file__), 'dataset', 'zip-code.csv')
     zip_df = pd.read_csv(zip_data_path)
 except Exception as e:
     print(f"Error loading ZIP code data: {str(e)}")
     zip_df = None
+
+def get_sagemaker_prediction(input_data):
+    """
+    Get predictions from SageMaker endpoint
+    """
+    try:
+        # Convert input data to JSON
+        payload = json.dumps(input_data)
+        
+        # Call SageMaker endpoint
+        response = sagemaker_runtime.invoke_endpoint(
+            EndpointName="farmModelEndpoint",
+            ContentType='application/json',
+            Accept='application/json',
+            Body=payload
+        )
+        
+        # Parse response
+        result = json.loads(response['Body'].read())
+        return result.get('predictions', None)
+    
+    except Exception as e:
+        print(f"Error getting SageMaker prediction: {str(e)}")
+        return None
+
 
 # MODEL_PATH = '/Users/aaditya/Desktop/seed/backend/models/Trained_Model.pkl'
 
