@@ -100,15 +100,11 @@ export default function Home() {
           {[
             { 
               title: 'Enter Crop and Location', 
-              description: 'Provide your crop choice and location details' 
-            },
-            { 
-              title: 'Get a Crop Schedule', 
-              description: 'Receive a detailed crop growth schedule' 
+              description: 'Get a personalized crop schedule for your location based on weather and soil data' 
             },
             { 
               title: 'Explore the Marketplace', 
-              description: 'Discover resources and marketplace options' 
+              description: 'Buy seeds,fertilizers,pesticides, and other farming supplies' 
             }
           ].map((step, index) => (
             <div 
