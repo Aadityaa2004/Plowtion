@@ -1,3 +1,5 @@
-Midnight is a blockchain platform, it has native tokens. Dust is the token on Midnight used to process transactions and pay transaction fees. Dust allows users to interact with DApps built on Midnight to pay for different services in a variety of applicable use cases.
+Our website harnesses the power of AI to generate personalized crop schedules tailored to your specific location and crop type. By integrating real-time weather data, we help farmers make informed decisions that optimize growth and maximize yield, adapting to the challenges posed by changing climate conditions.
 
-Midnight currently functions on Testnet, its initial sandboxed environment for early developer access. This means that users will be able to test the process of sending and receiving transactions only within Testnet.
+In addition to expert scheduling, our platform features a robust marketplace where farmers can easily buy and sell seeds and essential farming equipment. This convenient hub connects you with the resources you need, fostering a supportive community that enhances collaboration and trade among farmers.
+
+To further empower users, our website includes an intuitive chatbot that leverages natural language processing (NLP) to provide instant feedback and expert tips on crop management. This personalized support ensures that farmers have access to valuable insights, helping them navigate the complexities of farming with confidence and ease. Together, these features create a comprehensive online tool designed to elevate agricultural practices and promote sustainable farming.
