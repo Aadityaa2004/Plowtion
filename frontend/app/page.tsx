@@ -1,3 +1,5 @@
+"use client"
+import { signIn } from "next-auth/react"
 import Image from 'next/image';
 
 export default function Home() {
@@ -17,6 +19,7 @@ export default function Home() {
         <div className="text-center space-y-6">
           <h1 className="text-5xl font-bold text-gray-900 dark:text-white">
             Smart Farming Assistant
+            <button onClick={() => signIn("google")}>Sign In With Google</button>
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300">
             Get personalized crop recommendations based on your location
