@@ -62,6 +62,78 @@ export default function AboutUs() {
             </p>
           </div>
         </div>
+
+        {/* Step-by-Step Guide Section */}
+        <div className="max-w-4xl mx-auto mt-16">
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">How It Works</h2>
+          
+          <div className="space-y-8">
+            {/* Step 1 (previously Step 2) */}
+            <div className="flex items-start space-x-6">
+              <div className="flex-shrink-0 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                1
+              </div>
+              <div className="flex-grow">
+                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Select Your Crop</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Choose from our extensive list of crops to get specific guidance and recommendations for your farming needs.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 2 (previously Step 1) */}
+            <div className="flex items-start space-x-6">
+              <div className="flex-shrink-0 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                2
+              </div>
+              <div className="flex-grow">
+                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Enter Your Location</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Start by providing your ZIP code or location to get recommendations tailored to your area's climate and soil conditions.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex items-start space-x-6">
+              <div className="flex-shrink-0 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                3
+              </div>
+              <div className="flex-grow">
+                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Get Weather Insights</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Receive detailed weather forecasts and climate data to help plan your farming activities effectively.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 4 */}
+            <div className="flex items-start space-x-6">
+              <div className="flex-shrink-0 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                4
+              </div>
+              <div className="flex-grow">
+                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">View Recommendations</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Get personalized recommendations for crop management, including planting times, irrigation needs, and pest control.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 5 */}
+            <div className="flex items-start space-x-6">
+              <div className="flex-shrink-0 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                5
+              </div>
+              <div className="flex-grow">
+                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Track Progress</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Monitor your farming progress and get regular updates on crop health and growth stages.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
