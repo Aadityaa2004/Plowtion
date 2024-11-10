@@ -5,11 +5,9 @@ export default function Footer() {
         { title: 'Home', link: '/' },
         { title: 'Marketplace', link: '/marketplace' },
         { title: 'Crop Guide', link: '/crops' },
-        { title: 'Weather', link: '/weather' },
     ];
 
     const resources = [
-        { title: 'Farming Guide', link: '/guides' },
         { title: 'Soil Analysis', link: '/soil-analysis' },
         { title: 'Crop Calendar', link: '/calendar' },
         { title: 'Privacy Policy', link: '/privacy' },
