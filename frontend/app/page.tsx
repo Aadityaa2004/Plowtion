@@ -38,10 +38,39 @@ export default function Home() {
                   dark:bg-gray-700 dark:text-white transition-colors duration-200
                   hover:border-green-400"
               >
-                <option>Wheat</option>
-                <option>Rice</option>
-                <option>Corn</option>
-                <option>Cotton</option>
+                <optgroup label="Grains">
+                  <option value="rice">Rice</option>
+                  <option value="maize">Maize</option>
+                </optgroup>
+
+                <optgroup label="Pulses">
+                  <option value="chickpea">Chickpea</option>
+                  <option value="kidneybeans">Kidney Beans</option>
+                  <option value="pigeonpeas">Pigeon Peas</option>
+                  <option value="mothbeans">Moth Beans</option>
+                  <option value="mungbean">Mung Bean</option>
+                  <option value="blackgram">Black Gram</option>
+                  <option value="lentil">Lentil</option>
+                </optgroup>
+
+                <optgroup label="Fruits">
+                  <option value="pomegranate">Pomegranate</option>
+                  <option value="banana">Banana</option>
+                  <option value="mango">Mango</option>
+                  <option value="grapes">Grapes</option>
+                  <option value="watermelon">Watermelon</option>
+                  <option value="muskmelon">Muskmelon</option>
+                  <option value="apple">Apple</option>
+                  <option value="orange">Orange</option>
+                  <option value="papaya">Papaya</option>
+                  <option value="coconut">Coconut</option>
+                </optgroup>
+
+                <optgroup label="Commercial Crops">
+                  <option value="cotton">Cotton</option>
+                  <option value="jute">Jute</option>
+                  <option value="coffee">Coffee</option>
+                </optgroup>
               </select>
             </div>
 
