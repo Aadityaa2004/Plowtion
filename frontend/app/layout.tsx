@@ -15,7 +15,7 @@ export default function RootLayout({
       <body className="antialiased" suppressHydrationWarning>
         <SessionProvider>
           <Navbar />
-          <main>{children}</main>
+          <main className='min-h-screen'>{children}</main>
           <Footer />
         </SessionProvider>
       </body>

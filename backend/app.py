@@ -43,7 +43,7 @@ def load_model():
     """Load the trained model from the specified path"""
     global loaded_model
     try:
-        MODEL_PATH = '/Users/aaditya/Desktop/seed/backend/models/Trained_Model.pkl'
+        MODEL_PATH = os.path.join(os.path.dirname(__file__), 'models', 'Trained_Model.pkl')
         if os.path.exists(MODEL_PATH):
             loaded_model = joblib.load(MODEL_PATH)
             print("Model loaded successfully")
