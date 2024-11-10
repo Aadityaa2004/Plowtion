@@ -12,3 +12,4 @@ PyJWT
 eventlet
 gunicorn
 openai
+boto3
