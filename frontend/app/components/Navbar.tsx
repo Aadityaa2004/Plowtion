@@ -64,10 +64,10 @@ const NavBar = () => {
           ))}
           <Link href="/profile">
             <Image
-              src="/profile-icon.png"
+              src="/profile-photo.png"
               alt="Profile"
-              width={24}
-              height={24}
+              width={20}
+              height={20}
               className={`cursor-pointer hover:opacity-80 ${
                 path === '/profile' ? 'opacity-100' : 'opacity-70'
               }`}
