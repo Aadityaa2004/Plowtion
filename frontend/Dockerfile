@@ -4,7 +4,8 @@ WORKDIR /app
 
 # Add these environment variables
 ENV NEXTAUTH_URL=http://localhost:3000
-ENV NEXTAUTH_SECRET="tzBSB0OkkWLiyxieNVosAm3ed2J4FcUz5lo3w0KVUbE="
+# Environment variables should be set at runtime
+# ENV NEXTAUTH_SECRET will be provided via docker-compose or runtime
 
 # Copy package files first
 COPY package*.json ./

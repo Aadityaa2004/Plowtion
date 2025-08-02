@@ -1,8 +1,8 @@
-version: '3.8'
+version: "3.8"
 
 services:
   frontend:
-    build: 
+    build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
@@ -14,32 +14,32 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://backend:5001
       - NODE_ENV=development
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=tzBSB0OkkWLiyxieNVosAm3ed2J4FcUz5lo3w0KVUbE=
-      - GOOGLE_CLIENT_ID=1876125825-b91qlgruob7jeda1kocukgsnl1d4a74a.apps.googleusercontent.com
-      - GOOGLE_CLIENT_SECRET=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
-      - MONGODB_URI=mongodb+srv://vidhupv:hackUmass12@cluster0.xwni6.mongodb.net
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - MONGODB_URI=${MONGODB_URI}
     networks:
       - app-network
     depends_on:
       - backend
 
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "5001:5001"
     environment:
-      - MONGO_URI=mongodb+srv://vidhupv:hackUmass12@cluster0.xwni6.mongodb.net
-      - WEATHER_API_KEY=your_weather_api_key
+      - MONGO_URI=${MONGODB_URI}
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
       - FLASK_APP=app.py
-      - FLASK_ENV=development
-      - PERPLEXITY_API_KEY=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
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
-      - SAGEMAKER_ENDPOINT=farmModelEndpoint
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+      - SAGEMAKER_ENDPOINT=${SAGEMAKER_ENDPOINT:-farmModelEndpoint}
     volumes:
       - ./backend:/app
       - ./backend/models:/app/models
